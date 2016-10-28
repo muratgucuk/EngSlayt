@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using EngSlayt.Helper;
 
 namespace EngSlayt
 {
@@ -105,77 +106,5 @@ namespace EngSlayt
 
 
     }
-    public static class Util
-    {
-        public enum Effect { Roll, Slide, Center, Blend }
-
-        public static void Animate(Control ctl, Effect effect, int msec, int angle)
-        {
-            int flags = effmap[(int)effect];
-            if (ctl.Visible) { flags |= 0x10000; angle += 180; }
-            else
-            {
-                if (ctl.TopLevelControl == ctl) flags |= 0x20000;
-                else if (effect == Effect.Blend) throw new ArgumentException();
-            }
-            flags |= dirmap[(angle % 360) / 45];
-            bool ok = AnimateWindow(ctl.Handle, msec, flags);
-            if (!ok) throw new Exception("Animation failed");
-            ctl.Visible = !ctl.Visible;
-        }
-
-        private static int[] dirmap = { 1, 5, 4, 6, 2, 10, 8, 9 };
-        private static int[] effmap = { 0, 0x40000, 0x10, 0x80000 };
-
-        [DllImport("user32.dll")]
-        private static extern bool AnimateWindow(IntPtr handle, int msec, int flags);
-    }
-
-
-    public class IniFile
-    {
-        public string path;
-
-        [DllImport("kernel32")]
-        private static extern long WritePrivateProfileString(string section,
-          string key, string val, string filePath);
-
-        [DllImport("kernel32")]
-        private static extern int GetPrivateProfileString(string section,
-          string key, string def, StringBuilder retVal,
-          int size, string filePath);
-
-        public IniFile(string INIPath)
-        {
-            path = INIPath;
-        }
-
-        public void IniWriteValue(string Section, string Key, string Value)
-        {
-            WritePrivateProfileString(Section, Key, Value, this.path);
-        }
-
-        public string IniReadValue(string Section, string Key)
-        {
-            StringBuilder temp = new StringBuilder(255);
-            int i = GetPrivateProfileString(Section, Key, "", temp, 255, this.path);
-            return temp.ToString();
-        }
-    }
-
-    public static class Extensions
-    {
-        [DllImport("user32.dll")]
-        private static extern int ShowWindow(IntPtr hWnd, uint Msg);
-
-        private const uint SW_RESTORE = 0x09;
-
-        public static void Restore(this Form form)
-        {
-            if (form.WindowState == FormWindowState.Minimized)
-            {
-                ShowWindow(form.Handle, SW_RESTORE);
-            }
-        }
-    }
+    
 }
